@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MONOLITH — Where Creation Dissolves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{ml:{bg:'#050507',el:'#0C0C14',border:'#1A1A26',text:'#F0F0F5',muted:'#6B6B80',lime:'#CDFF00',coral:'#FF3355',cyan:'#00D4FF',dim:'#2A2A3A'}},fontFamily:{display:['"Syne"','sans-serif'],body:['"DM Sans"','sans-serif'],mono:['"JetBrains Mono"','monospace']}}}}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{-webkit-font-smoothing:antialiased;background:#050507;color:#F0F0F5;font-family:'DM Sans',sans-serif;overflow-x:hidden}
+::selection{background:rgba(205,255,0,.2)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+@property --ba{syntax:'<angle>';initial-value:0deg;inherits:false}
+
+/* Boot */
+#boot{position:fixed;inset:0;z-index:99999;background:#050507;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:2rem}
+#boot.done{animation:bootOut .6s ease forwards}
+.boot-line{opacity:0;transform:translateY(4px);transition:opacity .3s ease,transform .3s ease;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6B6B80;letter-spacing:.05em}
+.boot-line.show{opacity:1;transform:translateY(0)}
+.boot-prompt{color:#CDFF00;margin-right:8px}
+.boot-ok{color:#CDFF00;margin-left:6px}
+#boot-bar{width:240px;height:2px;background:#1A1A26;border-radius:1px;overflow:hidden;margin-top:12px;opacity:0;transition:opacity .3s ease}
+#boot-bar.show{opacity:1}
+#boot-bar-fill{width:0;height:100%;background:#CDFF00;transition:width 1.5s ease}
+#boot-title{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,7vw,5rem);color:#CDFF00;letter-spacing:.2em;opacity:0}
+#boot-title.flicker{animation:flick .12s ease 4}
+#boot-title.on{opacity:1}
+@keyframes flick{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes bootOut{to{opacity:0;pointer-events:none;visibility:hidden}}
+
+/* Cursor */
+@media(pointer:fine){*{cursor:none!important}#cD,#cR{display:block}}
+@media(pointer:coarse){#cD,#cR,#mG,#trail{display:none!important}}
+#cD{position:fixed;top:-3px;left:-3px;width:6px;height:6px;background:#CDFF00;border-radius:50%;pointer-events:none;z-index:10002;mix-blend-mode:difference;will-change:transform}
+#cR{position:fixed;top:-15px;left:-15px;width:30px;height:30px;border:1px solid rgba(240,240,245,.18);border-radius:50%;pointer-events:none;z-index:10001;will-change:transform;transition:width .3s cubic-bezier(.34,1.56,.64,1),height .3s cubic-bezier(.34,1.56,.64,1),border-color .3s}
+#cR.hov{width:46px;height:46px;border-color:rgba(205,255,0,.5)}
+#mG{position:fixed;width:500px;height:500px;border-radius:50%;pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(205,255,0,.025) 0%,transparent 70%);transform:translate(-50%,-50%);will-change:left,top}
+
+/* Trail */
+#trail{position:fixed;inset:0;pointer-events:none;z-index:100;will-change:transform}
+
+/* Noise */
+#noise{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998;opacity:.035;image-rendering:pixelated}
+
+/* Ripple */
+.ripple{position:fixed;border-radius:50%;border:1px solid rgba(205,255,0,.35);pointer-events:none;transform:translate(-50%,-50%) scale(0);animation:rip .65s ease-out forwards;z-index:10001}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(55);opacity:0}}
+
+/* Progress */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,#CDFF00,#FF3355,#00D4FF);z-index:10003;transform-origin:left;transform:scaleX(0);will-change:transform}
+
+/* Header */
+#hdr{transition:all .4s ease}
+#hdr.on{background:rgba(5,5,7,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.03)}
+
+/* Hero grid */
+.hero-grid{position:absolute;bottom:0;left:-50%;width:200%;height:45%;background-image:linear-gradient(90deg,rgba(205,255,0,.03) 1px,transparent 1px),linear-gradient(rgba(205,255,0,.03) 1px,transparent 1px);background-size:80px 80px;transform:perspective(500px) rotateX(65deg);transform-origin:bottom center;-webkit-mask-image:linear-gradient(to top,black,transparent);mask-image:linear-gradient(to top,black,transparent);animation:gridMv 4s linear infinite;z-index:3;pointer-events:none}
+@keyframes gridMv{to{background-position:0 80px}}
+
+/* Floating shapes */
+.hs{position:absolute;pointer-events:none;opacity:.04;z-index:4;animation:hsF var(--d,20s) ease-in-out infinite var(--dl,0s)}
+@keyframes hsF{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-30px) rotate(120deg)}66%{transform:translateY(18px) rotate(240deg)}}
+
+/* Type cursor */
+.type-cursor{color:#CDFF00;font-weight:400;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* Marquee */
+.mq{display:flex;animation:mqA 28s linear infinite;width:max-content}
+.mq.rev{animation-direction:reverse;animation-duration:33s}
+.mq:hover{animation-play-state:paused}
+@keyframes mqA{to{transform:translateX(-50%)}}
+
+/* Manifesto clip reveal */
+.man-line{clip-path:inset(0 100% 0 0);transition:clip-path 1s cubic-bezier(.16,1,.3,1),filter 1s ease;filter:blur(8px)}
+.man-line.vis{clip-path:inset(0 0% 0 0);filter:blur(0)}
+.mw{display:inline-block;position:relative;min-width:6ch}
+.mw::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:2px;background:#CDFF00;opacity:.35;border-radius:1px}
+
+/* Tilt cards */
+.tilt-card{transform-style:preserve-3d;transition:transform .1s ease-out;will-change:transform}
+.tilt-card .shine{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(circle at var(--sx,50%) var(--sy,50%),rgba(255,255,255,.1),transparent 55%);z-index:5}
+.tilt-card:hover .shine{opacity:1}
+.tilt-card .holo{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .4s;background:linear-gradient(var(--ha,135deg),transparent 30%,rgba(205,255,0,.07) 42%,rgba(0,212,255,.05) 50%,rgba(255,51,85,.07) 58%,transparent 70%);mix-blend-mode:overlay;z-index:6}
+.tilt-card:hover .holo{opacity:1}
+.tilt-card .cimg{transition:transform .4s ease-out}
+
+/* Rotating border */
+.gw{padding:1px;border-radius:17px;background:conic-gradient(from var(--ba),#CDFF00,transparent 25%,transparent 50%,#FF3355,transparent 75%);animation:rBdr 4s linear infinite}
+.gw:nth-child(2){animation-delay:-1s;--ba:90deg}
+.gw:nth-child(3){animation-delay:-2s;--ba:180deg}
+.gw:nth-child(4){animation-delay:-3s;--ba:270deg}
+@keyframes rBdr{to{--ba:360deg}}
+.gi{background:#0C0C14;border-radius:16px;height:100%;transition:background .3s}
+.gw:hover .gi{background:#101018}
+
+/* Stats */
+.stat-ring circle{transition:stroke-dashoffset 1.5s cubic-bezier(.16,1,.3,1)}
+
+/* Testimonial */
+.tb{transition:opacity .5s ease,transform .5s ease}
+.tb.out{opacity:0;transform:translateY(12px)}
+.tb.in{opacity:1;transform:translateY(0)}
+
+/* Glitch */
+.glitch{position:relative}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0}
+.glitch.on::before{color:#FF3355;opacity:.8;clip-path:polygon(0 0,100% 0,100% 33%,0 33%);animation:g1 .25s ease 3}
+.glitch.on::after{color:#00D4FF;opacity:.8;clip-path:polygon(0 67%,100% 67%,100% 100%,0 100%);animation:g2 .25s ease 3}
+@keyframes g1{0%,100%{transform:translate(0)}25%{transform:translate(-4px,-2px)}75%{transform:translate(3px,1px)}}
+@keyframes g2{0%,100%{transform:translate(0)}25%{transform:translate(4px,2px)}75%{transform:translate(-3px,-1px)}}
+
+/* Blobs */
+.blob{position:absolute;border-radius:60% 40% 30% 70%/60% 30% 70% 40%;filter:blur(90px);animation:morph 8s ease-in-out infinite}
+.blob:nth-child(2){animation-delay:-3s;border-radius:40% 60% 70% 30%/50% 60% 30% 60%}
+.blob:nth-child(3){animation-delay:-5s;border-radius:30% 50% 60% 40%/40% 50% 60% 50%}
+@keyframes morph{0%,100%{border-radius:60% 40% 30% 70%/60% 30% 70% 40%;transform:translate(0,0) scale(1)}33%{border-radius:40% 60% 70% 30%/50% 60% 30% 60%;transform:translate(30px,-20px) scale(1.05)}66%{border-radius:30% 50% 60% 40%/40% 50% 60% 50%;transform:translate(-20px,15px) scale(.95)}}
+
+/* Scroll reveal */
+.sr{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.sr.vis{opacity:1;transform:translateY(0)}
+
+/* Magnetic */
+.mag{transition:transform .15s ease}
+
+/* Page */
+body{opacity:0}
+body.ready{animation:pgIn .5s ease forwards}
+@keyframes pgIn{to{opacity:1}}
+
+/* Scanline texture on stats */
+.scanlines{background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.006) 2px,rgba(255,255,255,.006) 4px)}
+
+@media(prefers-reduced-motion:reduce){
+*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+body{opacity:1}body.ready{animation:none;opacity:1}
+.sr{opacity:1;transform:none}.man-line{opacity:1;transform:none;filter:none;clip-path:none}
+#boot{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Boot -->
+<div id="boot">
+  <div class="boot-line" style="--i:0"><span class="boot-prompt">&gt;</span>Initializing spatial matrix...</div>
+  <div class="boot-line" style="--i:1"><span class="boot-prompt">&gt;</span>Loading neural pathways <span class="boot-ok">[OK]</span></div>
+  <div class="boot-line" style="--i:2"><span class="boot-prompt">&gt;</span>Calibrating perception engine <span class="boot-ok">[OK]</span></div>
+  <div class="boot-line" style="--i:3"><span class="boot-prompt">&gt;</span>Compiling reality shader <span class="boot-ok">[OK]</span></div>
+  <div id="boot-bar"><div id="boot-bar-fill"></div></div>
+  <div id="boot-title">MONOLITH</div>
+</div>
+
+<!-- Fixed layers -->
+<canvas id="noise"></canvas>
+<canvas id="trail"></canvas>
+<div id="cD"></div><div id="cR"></div><div id="mG"></div>
+<div id="prog"></div>
+
+<!-- Header -->
+<header id="hdr" class="fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2.5 int">
+      <div class="w-8 h-8 rounded-lg bg-ml-lime flex items-center justify-center"><span class="iconify text-ml-bg text-sm" data-icon="ph:diamond-bold"></span></div>
+      <span class="font-display font-extrabold text-lg text-ml-text tracking-tight">MONOLITH</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-8">
+      <a href="#manifesto" class="ns text-sm font-medium text-ml-muted hover:text-ml-text transition-colors int">Manifesto</a>
+      <a href="#work" class="ns text-sm font-medium text-ml-muted hover:text-ml-text transition-colors int">Work</a>
+      <a href="#engine" class="ns text-sm font-medium text-ml-muted hover:text-ml-text transition-colors int">Engine</a>
+      <a href="#cta" class="ml-2 inline-flex items-center px-5 py-2 text-sm font-semibold text-ml-bg bg-ml-lime rounded-full hover:bg-ml-text transition-colors duration-300 int mag">Request access</a>
+    </nav>
+    <button id="mob-btn" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg text-ml-muted int" aria-label="Menu"><span class="iconify text-xl" data-icon="ph:list-bold"></span></button>
+  </div>
+  <div id="mob-menu" class="md:hidden hidden fixed inset-0 bg-ml-bg/95 backdrop-blur-2xl z-40 flex flex-col items-center justify-center gap-8">
+    <button id="mob-x" class="absolute top-5 right-6 w-10 h-10 text-ml-muted int" aria-label="Close"><span class="iconify text-2xl" data-icon="ph:x-bold"></span></button>
+    <a href="#manifesto" class="text-2xl font-display font-bold text-ml-text ml">Manifesto</a>
+    <a href="#work" class="text-2xl font-display font-bold text-ml-text ml">Work</a>
+    <a href="#engine" class="text-2xl font-display font-bold text-ml-text ml">Engine</a>
+    <a href="#cta" class="mt-4 px-8 py-3 bg-ml-lime text-ml-bg font-bold rounded-full ml">Request access</a>
+  </div>
+</header>
+
+<main>
+
+<!-- Hero -->
+<section id="hero" class="relative h-screen flex items-center justify-center overflow-hidden">
+  <canvas id="gl-c" class="absolute inset-0 w-full h-full" style="z-index:2"></canvas>
+  <div class="hero-grid"></div>
+  <div class="hs" style="left:8%;top:18%;font-size:16px;color:#CDFF00;--d:18s;--dl:0s">◆</div>
+  <div class="hs" style="left:88%;top:12%;font-size:22px;color:#FF3355;--d:24s;--dl:-6s">○</div>
+  <div class="hs" style="left:22%;top:72%;font-size:11px;color:#00D4FF;--d:15s;--dl:-3s">△</div>
+  <div class="hs" style="left:75%;top:65%;font-size:18px;color:#CDFF00;--d:20s;--dl:-8s">◇</div>
+  <div class="hs" style="left:50%;top:25%;font-size:9px;color:#FF3355;--d:22s;--dl:-12s">□</div>
+  <div class="hs" style="left:35%;top:45%;font-size:14px;color:#00D4FF;--d:17s;--dl:-4s">○</div>
+  <div class="hs" style="left:65%;top:80%;font-size:12px;color:#CDFF00;--d:19s;--dl:-10s">△</div>
+  <div class="hs" style="left:92%;top:42%;font-size:15px;color:#FF3355;--d:21s;--dl:-7s">◇</div>
+
+  <div class="relative z-10 text-center px-6">
+    <h1 class="sr-only">MONOLITH — Where Creation Dissolves</h1>
+    <p class="text-ml-muted text-base sm:text-lg md:text-xl max-w-md mx-auto leading-relaxed mb-10" id="hero-sub"></p>
+    <div class="flex flex-wrap items-center justify-center gap-4 mb-6" id="hero-btns" style="opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease">
+      <a href="#cta" class="mag int inline-flex items-center px-7 py-3.5 bg-ml-lime text-ml-bg font-bold text-sm rounded-full hover:shadow-lg hover:shadow-ml-lime/20 transition-all duration-300">Initialize<span class="iconify ml-2 text-base" data-icon="ph:arrow-right-bold"></span></a>
+      <a href="#" class="int inline-flex items-center px-7 py-3.5 text-ml-muted font-medium text-sm rounded-full border border-ml-border hover:border-ml-lime/40 hover:text-ml-lime transition-all duration-300"><span class="iconify mr-2 text-base" data-icon="ph:play-fill"></span>Watch the film</a>
+    </div>
+    <p class="text-ml-muted/25 text-xs tracking-wide" id="hero-note" style="opacity:0;transition:opacity .6s ease">Invite only · 2,400 spots remaining</p>
+  </div>
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-ml-muted/15 text-[10px] uppercase tracking-[.2em] animate-bounce z-10"><span>Scroll</span><span class="iconify text-sm" data-icon="ph:caret-down"></span></div>
+</section>
+
+<!-- Dual Marquee -->
+<div class="relative py-4 border-y border-ml-border overflow-hidden select-none z-10">
+  <div class="mq text-xl sm:text-2xl md:text-3xl font-display font-extrabold uppercase tracking-[.2em]">
+    <span class="text-ml-lime/12 px-5">Spatial</span><span class="text-ml-coral/8 px-3">◆</span>
+    <span class="text-ml-coral/12 px-5">Generative</span><span class="text-ml-lime/8 px-3">◆</span>
+    <span class="text-ml-cyan/12 px-5">Immersive</span><span class="text-ml-coral/8 px-3">◆</span>
+    <span class="text-ml-lime/12 px-5">Neural</span><span class="text-ml-cyan/8 px-3">◆</span>
+    <span class="text-ml-coral/12 px-5">Infinite</span><span class="text-ml-lime/8 px-3">◆</span>
+    <span class="text-ml-lime/12 px-5">Spatial</span><span class="text-ml-coral/8 px-3">◆</span>
+    <span class="text-ml-coral/12 px-5">Generative</span><span class="text-ml-lime/8 px-3">◆</span>
+    <span class="text-ml-cyan/12 px-5">Immersive</span><span class="text-ml-coral/8 px-3">◆</span>
+    <span class="text-ml-lime/12 px-5">Neural</span><span class="text-ml-cyan/8 px-3">◆</span>
+    <span class="text-ml-coral/12 px-5">Infinite</span><span class="text-ml-lime/8 px-3">◆</span>
+  </div>
+  <div class="mq rev text-lg sm:text-xl md:text-2xl font-display font-bold uppercase tracking-[.15em] -mt-1">
+    <span class="text-ml-cyan/8 px-5">Design</span><span class="text-ml-lime/6 px-3">◇</span>
+    <span class="text-ml-lime/8 px-5">Build</span><span class="text-ml-coral/6 px-3">◇</span>
+    <span class="text-ml-coral/8 px-5">Ship</span><span class="text-ml-lime/6 px-3">◇</span>
+    <span class="text-ml-cyan/8 px-5">Scale</span><span class="text-ml-coral/6 px-3">◇</span>
+    <span class="text-ml-lime/8 px-5">Evolve</span><span class="text-ml-cyan/6 px-3">◇</span>
+    <span class="text-ml-cyan/8 px-5">Design</span><span class="text-ml-lime/6 px-3">◇</span>
+    <span class="text-ml-lime/8 px-5">Build</span><span class="text-ml-coral/6 px-3">◇</span>
+    <span class="text-ml-coral/8 px-5">Ship</span><span class="text-ml-lime/6 px-3">◇</span>
+    <span class="text-ml-cyan/8 px-5">Scale</span><span class="text-ml-coral/6 px-3">◇</span>
+    <span class="text-ml-lime/8 px-5">Evolve</span><span class="text-ml-cyan/6 px-3">◇</span>
+  </div>
+</div>
+
+<!-- Manifesto -->
+<section id="manifesto" class="py-36 sm:py-48 px-6 lg:px-10 relative">
+  <div class="absolute top-1/3 right-0 w-[400px] h-[400px] bg-ml-lime/[.025] rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="max-w-5xl mx-auto">
+    <div class="man-line font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] text-ml-text leading-[1.05] tracking-tight mb-2" style="--d:0">We don't push</div>
+    <div class="man-line font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] text-ml-text leading-[1.05] tracking-tight mb-2" style="--d:1"><span id="mw1" class="mw text-ml-lime">boundaries</span>.</div>
+    <div class="man-line font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] leading-[1.05] tracking-tight mb-14" style="--d:2">We <span id="mw2" class="mw" style="background:linear-gradient(90deg,#CDFF00,#FF3355);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">erase</span> them.</div>
+    <div class="man-line text-ml-muted text-base sm:text-lg max-w-xl leading-relaxed" style="--d:3">MONOLITH is a spatial creation engine — not another tool in your stack, but a new dimension to think in. For creators who build what shouldn't exist.</div>
+  </div>
+</section>
+
+<!-- Showcase — 3D Tilt + Holographic -->
+<section id="work" class="py-28 sm:py-36 px-6 lg:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-14 sr">
+      <p class="font-mono text-ml-lime text-xs tracking-[.25em] uppercase mb-4">Selected Work</p>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-ml-text tracking-tight">Built in another<br>dimension.</h2>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="tilt-card rounded-2xl overflow-hidden relative group int sr">
+        <div class="shine"></div><div class="holo"></div>
+        <img src="https://picsum.photos/seed/ml-phantom/800/600" alt="Phantom Protocol" class="cimg w-full aspect-[4/3] object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-2"></div>
+        <div class="absolute bottom-0 left-0 p-6 sm:p-8 z-10"><span class="font-mono text-ml-lime text-xs tracking-wider mb-2 block">01 — IMMERSIVE WEB</span><h3 class="font-display font-bold text-2xl sm:text-3xl text-white mb-1">Phantom Protocol</h3><p class="text-white/40 text-sm">Gaming studio launch experience</p></div>
+      </div>
+      <div class="tilt-card rounded-2xl overflow-hidden relative group int sr" style="transition-delay:.1s">
+        <div class="shine"></div><div class="holo"></div>
+        <img src="https://picsum.photos/seed/ml-solaris/800/600" alt="Solaris Interface" class="cimg w-full aspect-[4/3] object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-2"></div>
+        <div class="absolute bottom-0 left-0 p-6 sm:p-8 z-10"><span class="font-mono text-ml-coral text-xs tracking-wider mb-2 block">02 — SPATIAL OS</span><h3 class="font-display font-bold text-2xl sm:text-3xl text-white mb-1">Solaris Interface</h3><p class="text-white/40 text-sm">Autonomous vehicle control system</p></div>
+      </div>
+      <div class="tilt-card rounded-2xl overflow-hidden relative group int sr" style="transition-delay:.2s">
+        <div class="shine"></div><div class="holo"></div>
+        <img src="https://picsum.photos/seed/ml-echo/800/600" alt="Echo Chamber" class="cimg w-full aspect-[4/3] object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-2"></div>
+        <div class="absolute bottom-0 left-0 p-6 sm:p-8 z-10"><span class="font-mono text-ml-cyan text-xs tracking-wider mb-2 block">03 — GENERATIVE AUDIO</span><h3 class="font-display font-bold text-2xl sm:text-3xl text-white mb-1">Echo Chamber</h3><p class="text-white/40 text-sm">AI-powered music creation platform</p></div>
+      </div>
+      <div class="tilt-card rounded-2xl overflow-hidden relative group int sr" style="transition-delay:.3s">
+        <div class="shine"></div><div class="holo"></div>
+        <img src="https://picsum.photos/seed/ml-void/800/600" alt="Void Architect" class="cimg w-full aspect-[4/3] object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-2"></div>
+        <div class="absolute bottom-0 left-0 p-6 sm:p-8 z-10"><span class="font-mono text-ml-lime text-xs tracking-wider mb-2 block">04 — WORLD BUILDING</span><h3 class="font-display font-bold text-2xl sm:text-3xl text-white mb-1">Void Architect</h3><p class="text-white/40 text-sm">3D environment design tool — 500K users</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features — Bento + Rotating Borders -->
+<section id="engine" class="py-28 sm:py-36 px-6 lg:px-10 relative">
+  <div class="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-ml-coral/[.02] rounded-full blur-[140px] pointer-events-none"></div>
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-14 sr">
+      <p class="font-mono text-ml-coral text-xs tracking-[.25em] uppercase mb-4">The Engine</p>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-ml-text tracking-tight">What's under<br>the hood.</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 auto-rows-[190px] sm:auto-rows-[210px]">
+      <div class="gw md:col-span-2 md:row-span-2 sr" style="transition-delay:0s">
+        <div class="gi p-8 sm:p-10 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-6"><div class="w-12 h-12 rounded-xl bg-ml-lime/10 flex items-center justify-center"><span class="iconify text-ml-lime text-xl" data-icon="ph:cube-fill"></span></div><span class="font-mono text-ml-dim text-xs">01</span></div>
+            <h3 class="font-display font-bold text-2xl sm:text-3xl text-ml-text mb-3">Spatial Engine</h3>
+            <p class="text-ml-muted text-sm leading-relaxed max-w-md">Design in true 3D space — not flat rectangles pretending to be depth. Manipulate objects, lighting, and perspective in real-time. The canvas isn't flat anymore.</p>
+          </div>
+          <div class="flex gap-2 mt-4"><span class="px-3 py-1 rounded-full bg-ml-lime/8 text-ml-lime text-xs font-medium">3D Native</span><span class="px-3 py-1 rounded-full bg-ml-lime/8 text-ml-lime text-xs font-medium">Real-time</span><span class="px-3 py-1 rounded-full bg-ml-lime/8 text-ml-lime text-xs font-medium">GPU Accelerated</span></div>
+        </div>
+      </div>
+      <div class="gw sr" style="transition-delay:.1s">
+        <div class="gi p-6 sm:p-8 flex flex-col justify-between">
+          <div class="w-10 h-10 rounded-lg bg-ml-coral/10 flex items-center justify-center mb-3"><span class="iconify text-ml-coral text-lg" data-icon="ph:brain-fill"></span></div>
+          <div><h3 class="font-display font-bold text-lg text-ml-text mb-1">Neural Mesh</h3><p class="text-ml-muted text-xs leading-relaxed">AI that maps spatial relationships at a structural level.</p></div>
+        </div>
+      </div>
+      <div class="gw sr" style="transition-delay:.2s">
+        <div class="gi p-6 sm:p-8 flex flex-col justify-between">
+          <div class="w-10 h-10 rounded-lg bg-ml-cyan/10 flex items-center justify-center mb-3"><span class="iconify text-ml-cyan text-lg" data-icon="ph:lightning-fill"></span></div>
+          <div><h3 class="font-display font-bold text-lg text-ml-text mb-1">Quantum Sync</h3><p class="text-ml-muted text-xs leading-relaxed">Zero perceived latency. Multi-user spatial editing.</p></div>
+        </div>
+      </div>
+      <div class="gw md:col-span-2 sr" style="transition-delay:.15s">
+        <div class="gi p-6 sm:p-8 flex items-center gap-6 sm:gap-10">
+          <div class="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0"><span class="iconify text-purple-400 text-2xl" data-icon="ph:arrows-out-cardinal-fill"></span></div>
+          <div><h3 class="font-display font-bold text-xl text-ml-text mb-1">Dimension Shift</h3><p class="text-ml-muted text-sm leading-relaxed">Transform any 2D design into a navigable 3D space with one click. Export to WebGL, AR, or spatial computing formats.</p></div>
+        </div>
+      </div>
+      <div class="gw md:row-span-2 sr" style="transition-delay:.25s">
+        <div class="gi p-6 sm:p-8 flex flex-col justify-between">
+          <div class="w-10 h-10 rounded-lg bg-ml-lime/10 flex items-center justify-center mb-3"><span class="iconify text-ml-lime text-lg" data-icon="ph:shield-check-fill"></span></div>
+          <div><h3 class="font-display font-bold text-lg text-ml-text mb-1">Shield Protocol</h3><p class="text-ml-muted text-xs leading-relaxed">End-to-end encrypted. Zero-knowledge architecture. Your creative process stays yours.</p></div>
+          <div class="mt-auto pt-4 border-t border-ml-border flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-ml-lime animate-pulse"></span><span class="font-mono text-ml-lime/50 text-[10px]">AES-256 ACTIVE</span></div>
+        </div>
+      </div>
+      <div class="gw sr" style="transition-delay:.3s">
+        <div class="gi p-6 sm:p-8 flex flex-col justify-between">
+          <div class="w-10 h-10 rounded-lg bg-ml-cyan/10 flex items-center justify-center mb-3"><span class="iconify text-ml-cyan text-lg" data-icon="ph:app-window-fill"></span></div>
+          <div><h3 class="font-display font-bold text-lg text-ml-text mb-1">Adaptive UI</h3><p class="text-ml-muted text-xs leading-relaxed">Interface that shapes around your workflow.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats — SVG Rings -->
+<section class="py-24 px-6 lg:px-10 border-y border-ml-border scanlines relative z-10">
+  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-8 text-center">
+    <div class="flex flex-col items-center sr" data-stat>
+      <div class="relative w-28 h-28 mb-4">
+        <svg class="stat-ring w-full h-full -rotate-90" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="#1A1A26" stroke-width="3"/><circle cx="50" cy="50" r="42" fill="none" stroke="#CDFF00" stroke-width="3" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9" data-ring/></svg>
+        <div class="absolute inset-0 flex items-center justify-center"><span class="font-display font-extrabold text-2xl text-ml-text sn" data-t="128" data-s="M">0</span></div>
+      </div>
+      <div class="text-ml-muted text-sm font-medium">Assets Generated</div>
+    </div>
+    <div class="flex flex-col items-center sr" data-stat style="transition-delay:.15s">
+      <div class="relative w-28 h-28 mb-4">
+        <svg class="stat-ring w-full h-full -rotate-90" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="#1A1A26" stroke-width="3"/><circle cx="50" cy="50" r="42" fill="none" stroke="#FF3355" stroke-width="3" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9" data-ring/></svg>
+        <div class="absolute inset-0 flex items-center justify-center"><span class="font-display font-extrabold text-2xl text-ml-text sn" data-t="8400" data-s="+">0</span></div>
+      </div>
+      <div class="text-ml-muted text-sm font-medium">Creators Active</div>
+    </div>
+    <div class="flex flex-col items-center sr" data-stat style="transition-delay:.3s">
+      <div class="relative w-28 h-28 mb-4">
+        <svg class="stat-ring w-full h-full -rotate-90" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="#1A1A26" stroke-width="3"/><circle cx="50" cy="50" r="42" fill="none" stroke="#00D4FF" stroke-width="3" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9" data-ring/></svg>
+        <div class="absolute inset-0 flex items-center justify-center"><span class="font-display font-extrabold text-2xl sn" style="background:linear-gradient(90deg,#CDFF00,#00D4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-t="99.9" data-s="%">0</span></div>
+      </div>
+      <div class="text-ml-muted text-sm font-medium">Uptime SLA</div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-28 sm:py-36 px-6 lg:px-10 relative z-10">
+  <div class="max-w-4xl mx-auto text-center sr">
+    <div class="tb in" id="tb">
+      <span class="iconify text-ml-lime/12 text-5xl mb-8 block mx-auto" data-icon="ph:quotes-fill"></span>
+      <blockquote class="font-display font-bold text-2xl sm:text-3xl md:text-4xl text-ml-text leading-snug tracking-tight mb-10" id="tq">I stopped using Figma the day I tried MONOLITH.</blockquote>
+      <div class="flex items-center justify-center gap-3"><img id="ti" src="https://picsum.photos/seed/ml-t1/80/80" alt="" class="w-11 h-11 rounded-full object-cover ring-2 ring-ml-lime/20"><div class="text-left"><div class="text-sm font-semibold text-ml-text" id="tn">Kai Nakamura</div><div class="text-xs text-ml-muted" id="tr">Creative Director, Phantom Studio</div></div></div>
+    </div>
+    <div class="flex items-center justify-center gap-2 mt-10"><span class="td w-2 h-2 rounded-full bg-ml-lime transition-colors" data-i="0"></span><span class="td w-2 h-2 rounded-full bg-ml-border transition-colors" data-i="1"></span><span class="td w-2 h-2 rounded-full bg-ml-border transition-colors" data-i="2"></span></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="relative py-36 sm:py-44 px-6 lg:px-10 overflow-hidden z-10">
+  <div class="blob w-[500px] h-[500px] bg-ml-lime/15 -top-40 -left-40 absolute"></div>
+  <div class="blob w-[400px] h-[400px] bg-ml-coral/12 -bottom-32 -right-32 absolute"></div>
+  <div class="blob w-[300px] h-[300px] bg-ml-cyan/8 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute"></div>
+  <div class="absolute inset-0 bg-ml-bg/60"></div>
+  <div class="relative z-10 max-w-3xl mx-auto text-center">
+    <h2 class="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white tracking-tight mb-6 leading-tight glitch" id="cta-h" data-text="Ready to vanish?">Ready to vanish?</h2>
+    <p class="text-white/55 text-lg sm:text-xl max-w-xl mx-auto mb-10">Join the creators who stopped designing pages and started building worlds.</p>
+    <a href="#" class="mag int inline-flex items-center px-9 py-4 bg-ml-lime text-ml-bg font-bold text-base rounded-full hover:shadow-2xl hover:shadow-ml-lime/25 hover:-translate-y-1 transition-all duration-300">Request early access<span class="iconify ml-2 text-lg" data-icon="ph:arrow-right-bold"></span></a>
+    <p class="text-white/25 text-xs mt-6 tracking-wide">Invite only · Free during beta · No credit card</p>
+  </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-ml-border py-16 px-6 lg:px-10 relative z-10">
+  <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+    <div class="col-span-2 md:col-span-1">
+      <div class="flex items-center gap-2.5 mb-4"><div class="w-7 h-7 rounded-md bg-ml-lime flex items-center justify-center"><span class="iconify text-ml-bg text-xs" data-icon="ph:diamond-bold"></span></div><span class="font-display font-extrabold text-base text-ml-text tracking-tight">MONOLITH</span></div>
+      <p class="text-ml-muted text-sm leading-relaxed">Spatial creation engine.<br>Not a tool. A dimension.</p>
+    </div>
+    <div><h4 class="text-ml-text font-semibold text-xs uppercase tracking-wider mb-4">Product</h4><ul class="space-y-2.5 text-sm text-ml-muted"><li><a href="#" class="hover:text-ml-text transition-colors int">Engine</a></li><li><a href="#" class="hover:text-ml-text transition-colors int">Pricing</a></li><li><a href="#" class="hover:text-ml-text transition-colors int">Changelog</a></li><li><a href="#" class="hover:text-ml-text transition-colors int">Docs</a></li></ul></div>
+    <div><h4 class="text-ml-text font-semibold text-xs uppercase tracking-wider mb-4">Company</h4><ul class="space-y-2.5 text-sm text-ml-muted"><li><a href="#" class="hover:text-ml-text transition-colors int">About</a></li><li><a href="#" class="hover:text-ml-text transition-colors int">Blog</a></li><li><a href="#" class="hover:text-ml-text transition-colors int">Careers</a></li><li><a href="#" class="hover:text-ml-text transition-colors int">Contact</a></li></ul></div>
+    <div><h4 class="text-ml-text font-semibold text-xs uppercase tracking-wider mb-4">Connect</h4><div class="flex gap-3"><a href="#" class="w-9 h-9 rounded-lg bg-ml-el border border-ml-border hover:border-ml-lime/40 flex items-center justify-center transition-colors int" aria-label="X"><span class="iconify text-ml-muted text-sm" data-icon="ph:x-logo-fill"></span></a><a href="#" class="w-9 h-9 rounded-lg bg-ml-el border border-ml-border hover:border-ml-lime/40 flex items-center justify-center transition-colors int" aria-label="GitHub"><span class="iconify text-ml-muted text-sm" data-icon="ph:github-logo-fill"></span></a><a href="#" class="w-9 h-9 rounded-lg bg-ml-el border border-ml-border hover:border-ml-lime/40 flex items-center justify-center transition-colors int" aria-label="Discord"><span class="iconify text-ml-muted text-sm" data-icon="ph:discord-logo-fill"></span></a></div></div>
+  </div>
+  <div class="max-w-7xl mx-auto border-t border-ml-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ml-muted/40">
+    <p>© 2025 MONOLITH. All rights reserved.</p>
+    <div class="flex gap-6"><a href="#" class="hover:text-ml-muted transition-colors int">Privacy</a><a href="#" class="hover:text-ml-muted transition-colors int">Terms</a></div>
+  </div>
+</footer>
+
+<script>
+// ======================== BOOT ========================
+const bootEl=document.getElementById('boot'),bootBar=document.getElementById('boot-bar'),bootFill=document.getElementById('boot-bar-fill'),bootTitle=document.getElementById('boot-title');
+const bootLines=document.querySelectorAll('.boot-line');
+bootLines.forEach((l,i)=>setTimeout(()=>l.classList.add('show'),i*350));
+setTimeout(()=>{bootBar.classList.add('show');bootFill.style.width='100%'},bootLines.length*350);
+setTimeout(()=>{bootTitle.classList.add('flicker')},bootLines.length*350+400);
+setTimeout(()=>{bootTitle.classList.remove('flicker');bootTitle.classList.add('on')},bootLines.length*350+900);
+setTimeout(()=>{bootEl.classList.add('done');document.body.classList.add('ready');setTimeout(()=>{typewriter(document.getElementById('hero-sub'),'Where creation dissolves into reality.',42);document.getElementById('hero-btns').style.opacity='1';document.getElementById('hero-btns').style.transform='translateY(0)';setTimeout(()=>{document.getElementById('hero-note').style.opacity='1'},800)},300)},2800);
+
+// ======================== NOISE ========================
+(function(){const c=document.getElementById('noise');c.width=200;c.height=200;const x=c.getContext('2d'),d=x.createImageData(200,200);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=v;d.data[i+1]=v;d.data[i+2]=v;d.data[i+3]=8;}x.putImageData(d,0,0)})();
+
+// ======================== CURSOR ========================
+const cD=document.getElementById('cD'),cR=document.getElementById('cR'),mG=document.getElementById('mG');
+let mx=-100,my=-100,rx=-100,ry=-100;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;mG.style.left=mx+'px';mG.style.top=my+'px';cD.style.transform=`translate(${mx}px,${my}px)`;});
+(function cLoop(){rx+=(mx-rx)*.14;ry+=(my-ry)*.14;cR.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(cLoop)})();
+document.querySelectorAll('a,button,.int').forEach(el=>{el.addEventListener('mouseenter',()=>cR.classList.add('hov'));el.addEventListener('mouseleave',()=>cR.classList.remove('hov'))});
+
+// ======================== TRAIL ========================
+const trC=document.getElementById('trail'),trX=trC.getContext('2d');
+const pts=[];const MAX_PTS=28;
+function szTr(){trC.width=innerWidth;trC.height=innerHeight}
+szTr();addEventListener('resize',szTr);
+document.addEventListener('mousemove',e=>{pts.push({x:e.clientX,y:e.clientY});if(pts.length>MAX_PTS)pts.shift()});
+(function trLoop(){trX.clearRect(0,0,trC.width,trC.height);if(pts.length>1){for(let i=1;i<pts.length;i++){const t=i/pts.length;trX.beginPath();trX.moveTo(pts[i-1].x,pts[i-1].y);trX.lineTo(pts[i].x,pts[i].y);trX.strokeStyle=`rgba(205,255,0,${t*.2})`;trX.lineWidth=t*3.5;trX.lineCap='round';trX.stroke()}}requestAnimationFrame(trLoop)})();
+
+// ======================== RIPPLE ========================
+document.addEventListener('click',e=>{for(let i=0;i<3;i++){setTimeout(()=>{const r=document.createElement('div');r.className='ripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),700)},i*90)}});
+
+// ======================== PROGRESS ========================
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-innerHeight;prog.style.transform=`scaleX(${h>0?scrollY/h:0})`},{passive:true});
+
+// ======================== HEADER ========================
+const hdr=document.getElementById('hdr');
+addEventListener('scroll',()=>hdr.classList.toggle('on',scrollY>50),{passive:true});
+
+// ======================== MOBILE ========================
+const mm=document.getElementById('mob-menu');
+document.getElementById('mob-btn').onclick=()=>mm.classList.remove('hidden');
+document.getElementById('mob-x').onclick=()=>mm.classList.add('hidden');
+mm.querySelectorAll('.ml').forEach(l=>l.addEventListener('click',()=>mm.classList.add('hidden')));
+
+// ======================== WEBGL SPHERE ========================
+(function(){
+const cv=document.getElementById('gl-c'),gl=cv.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true});
+if(!gl){cv.style.display='none';return}
+function rsz(){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;gl.viewport(0,0,cv.width,cv.height)}
+rsz();addEventListener('resize',rsz);
+
+const VS=`attribute vec2 aP;uniform float uT,uAsp,uHov;uniform vec2 uM;varying vec3 vP,vN;varying float vD;
+float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float ns(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}
+void main(){
+float u=aP.x*.5+.5,v=aP.y*.5+.5;
+float th=u*6.28318,ph=v*3.14159;
+vec3 p=vec3(sin(ph)*cos(th),cos(ph),sin(ph)*sin(th));
+vec3 n=normalize(p);
+float d=0.,amp=1.,fr=3.;
+for(int i=0;i<4;i++){d+=ns(n.xy*fr+uT*(.3-float(i)*.06))*amp;amp*=.5;fr*=2.;}
+d*=.1;
+vec3 md=normalize(vec3(uM*1.5,.8));
+d+=max(0.,dot(n,md))*.15*sin(uT*2.)*uHov;
+d+=sin(uT*.8)*.02;
+vD=d;vN=n;vP=p+n*d;
+float a=uT*.1,ca=cos(a),sa=sin(a);
+vec3 r=vec3(vP.x*ca-vP.z*sa,vP.y,vP.x*sa+vP.z*ca);
+float b=.3+sin(uT*.08)*.15,cb=cos(b),sb=sin(b);
+r=vec3(r.x,r.y*cb-r.z*sb,r.y*sb+r.z*cb);
+vec3 rn=vec3(n.x*ca-n.z*sa,n.y,n.x*sa+n.z*ca);
+rn=vec3(rn.x,rn.y*cb-rn.z*sb,rn.y*sb+rn.z*cb);
+vN=rn;
+float fov=2.2,z=r.z+fov;
+gl_Position=vec4(r.x/z/uAsp,r.y/z,0.,1.);
+}`;
+
+const FS=`precision mediump float;varying vec3 vP,vN;varying float vD;
+void main(){
+vec3 n=normalize(vN),vd=vec3(0,0,1);
+float fr=pow(1.-abs(dot(n,vd)),3.);
+vec3 lime=vec3(.804,1.,0.),coral=vec3(1.,.2,.333),dark=vec3(.02,.02,.027);
+float cm=vP.y*.5+.5+vD*2.;
+vec3 c=mix(lime*.4,coral*.3,clamp(cm,0.,1.));
+c+=abs(vD)*vec3(.2,.15,.05);
+c+=fr*mix(lime,coral,fr)*.5;
+c=mix(dark,c,.6+fr*.4);
+gl_FragColor=vec4(c,.8+fr*.2);
+}`;
+
+function mkS(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+const pg=gl.createProgram();gl.attachShader(pg,mkS(gl.VERTEX_SHADER,VS));gl.attachShader(pg,mkS(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pg);gl.useProgram(pg);
+
+const SG=64,RN=40,pos=[],idx=[];
+for(let j=0;j<=RN;j++)for(let i=0;i<=SG;i++)pos.push((i/SG)*2-1,(j/RN)*2-1);
+for(let j=0;j<RN;j++)for(let i=0;i<SG;i++){const a=j*(SG+1)+i,b=a+SG+1;idx.push(a,b,a+1,b,b+1,a+1)}
+const pb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(pos),gl.STATIC_DRAW);
+const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);
+const aP=gl.getAttribLocation(pg,'aP');gl.enableVertexAttribArray(aP);gl.vertexAttribPointer(aP,2,gl.FLOAT,false,0,0);
+const uT=gl.getUniformLocation(pg,'uT'),uAsp=gl.getUniformLocation(pg,'uAsp'),uM=gl.getUniformLocation(pg,'uM'),uHov=gl.getUniformLocation(pg,'uHov');
+
+let gMx=0,gMy=0,gHov=0;
+const heroEl=document.getElementById('hero');
+heroEl.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();gMx=((e.clientX-r.left)/r.width)*2-1;gMy=-(((e.clientY-r.top)/r.height)*2-1)});
+heroEl.addEventListener('mouseenter',()=>gHov=1);
+heroEl.addEventListener('mouseleave',()=>{gHov=0;gMx=0;gMy=0});
+
+gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0,0,0,0);
+(function render(t){gl.clear(gl.COLOR_BUFFER_BIT);gl.uniform1f(uT,t*.001);gl.uniform1f(uAsp,cv.width/cv.height);gl.uniform2f(uM,gMx,gMy);gl.uniform1f(uHov,gHov);gl.drawElements(gl.TRIANGLES,idx.length,gl.UNSIGNED_SHORT,0);requestAnimationFrame(render)})(0);
+})();
+
+// ======================== TYPEWRITER ========================
+function typewriter(el,text,speed=42){let i=0;el.innerHTML='';const cur=document.createElement('span');cur.className='type-cursor';cur.textContent='|';el.appendChild(cur);
+function tick(){if(i<text.length){el.insertBefore(document.createTextNode(text[i]),cur);i++;setTimeout(tick,speed)}else{setTimeout(()=>{cur.style.transition='opacity .5s';cur.style.opacity='0';setTimeout(()=>cur.remove(),500)},2000)}}
+tick()}
+
+// ======================== SCRAMBLE ========================
+const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#&';
+function scrm(el,fin,dur=350){const st=18,iv=dur/st;let s=0;const t=setInterval(()=>{let r='';for(let i=0;i<fin.length;i++)r+=i<(s/st)*fin.length?fin[i]:ch[Math.floor(Math.random()*ch.length)];el.textContent=r;if(++s>st){el.textContent=fin;clearInterval(t)}},iv)}
+document.querySelectorAll('.ns').forEach(a=>{const o=a.textContent;a.addEventListener('mouseenter',()=>scrm(a,o))});
+
+// ======================== MAGNETIC ========================
+document.querySelectorAll('.mag').forEach(b=>{b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.2}px,${(e.clientY-r.top-r.height/2)*.2}px)`});b.addEventListener('mouseleave',()=>{b.style.transition='transform .5s cubic-bezier(.34,1.56,.64,1)';b.style.transform='';setTimeout(()=>b.style.transition='',500)})});
+
+// ======================== SCROLL REVEAL ========================
+const srO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');srO.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.sr').forEach(el=>srO.observe(el));
+
+// ======================== MANIFESTO ========================
+const mO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const d=parseInt(e.target.style.getPropertyValue('--d'))||0;setTimeout(()=>e.target.classList.add('vis'),d*180);mO.unobserve(e.target)}}),{threshold:.2});
+document.querySelectorAll('.man-line').forEach(el=>mO.observe(el));
+
+// ======================== WORD MORPH ========================
+const mw1=document.getElementById('mw1'),mw2=document.getElementById('mw2');
+const w1=['boundaries','limits','rules','walls'],w2=['erase','shatter','dissolve','vaporize'];
+let lastMI=-1;
+function checkMorph(){const r=document.getElementById('manifesto').getBoundingClientRect();const p=Math.max(0,Math.min(1,-r.top/(r.height-innerHeight)));const idx=Math.min(Math.floor(p*w1.length),w1.length-1);if(idx!==lastMI){lastMI=idx;scrm(mw1,w1[idx],380);scrm(mw2,w2[idx],380)}}
+addEventListener('scroll',checkMorph,{passive:true});
+
+// ======================== TILT CARDS ========================
+document.querySelectorAll('.tilt-card').forEach(card=>{
+  const shine=card.querySelector('.shine'),holo=card.querySelector('.holo'),img=card.querySelector('.cimg');
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`perspective(800px) rotateY(${x*12}deg) rotateX(${-y*12}deg) scale(1.02)`;
+    if(shine){shine.style.setProperty('--sx',(e.clientX-r.left)+'px');shine.style.setProperty('--sy',(e.clientY-r.top)+'px')}
+    if(holo){const ang=Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI+180;holo.style.setProperty('--ha',ang+'deg')}
+    if(img)img.style.transform=`translate(${x*-8}px,${y*-8}px) scale(1.05)`;
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='perspective(800px) rotateY(0) rotateX(0) scale(1)';card.style.transition='transform .5s cubic-bezier(.34,1.56,.64,1)';
+    if(img){img.style.transform='';img.style.transition='transform .5s ease'}
+    setTimeout(()=>{card.style.transition='transform .1s ease-out';if(img)img.style.transition='transform .4s ease-out'},500);
+  });
+});
+
+// ======================== STATS ========================
+function eO(t){return t*(2-t)}
+function aNum(el,tgt,dur=1400){const suf=el.dataset.s||'';const isF=tgt%1!==0;const st=performance.now();
+(function tk(n){const p=Math.min((n-st)/dur,1);const v=tgt*eO(p);el.textContent=(isF?v.toFixed(1):Math.floor(v))+suf;if(p<1)requestAnimationFrame(tk)})(st)}
+const stO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const num=e.target.querySelector('.sn'),ring=e.target.querySelector('[data-ring]');
+if(num&&!num.dataset.done){num.dataset.done='1';aNum(num,parseFloat(num.dataset.t));
+if(ring){const t=parseFloat(num.dataset.t);const map={128:40,8400:180,99.9:40};ring.style.strokeDashoffset=map[t]||40}}
+stO.unobserve(e.target)}}),{threshold:.5});
+document.querySelectorAll('[data-stat]').forEach(el=>stO.observe(el));
+
+// ======================== TESTIMONIALS ========================
+const ts=[{q:'I stopped using Figma the day I tried MONOLITH.',n:'Kai Nakamura',r:'Creative Director, Phantom Studio',img:'ml-t1'},{q:"It's not a tool. It's a creative partner that speaks my language.",n:'Elena Voss',r:'Founder, Deepframe',img:'ml-t2'},{q:'My team shipped 3x faster. The quality jump was obscene.',n:'Ravi Patel',r:'VP Design, NovaCorp',img:'ml-t3'}];
+let cT=0;const tb=document.getElementById('tb'),tq=document.getElementById('tq'),tn=document.getElementById('tn'),tr=document.getElementById('tr'),ti=document.getElementById('ti'),tds=document.querySelectorAll('.td');
+function setT(i){tb.classList.remove('in');tb.classList.add('out');setTimeout(()=>{tq.textContent=ts[i].q;tn.textContent=ts[i].n;tr.textContent=ts[i].r;ti.src=`https://picsum.photos/seed/${ts[i].img}/80/80`;tds.forEach((d,j)=>{d.className=`td w-2 h-2 rounded-full transition-colors ${j===i?'bg-ml-lime':'bg-ml-border'}`});tb.classList.remove('out');tb.classList.add('in')},450)}
+setInterval(()=>{cT=(cT+1)%ts.length;setT(cT)},5500);
+tds.forEach(d=>d.addEventListener('click',()=>{cT=+d.dataset.i;setT(cT)}));
+
+// ======================== CTA GLITCH ========================
+const ctaH=document.getElementById('cta-h');
+const gO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){ctaH.classList.add('on');scrm(ctaH,ctaH.dataset.text,700);setTimeout(()=>ctaH.classList.remove('on'),800);gO.unobserve(e.target)}}),{threshold:.5});
+gO.observe(ctaH);
+
+// ======================== ANCHORS ========================
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const t=document.querySelector(this.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}})});
+</script>
+</body>
+</html>
